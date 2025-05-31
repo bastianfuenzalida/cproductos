@@ -1,0 +1,90 @@
+/* Estilos para el bloque de análisis de ventas */
+.ventas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin: 0.5em 0 1em 0; /* más arriba y a la izquierda */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bloque-titulo {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffa600;
+    margin-bottom: 0.5em;
+    margin-left: 0.1em;
+    letter-spacing: 0.5px;
+}
+
+.ventas-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ventas-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: var(--bg-primary);
+    border-radius: 4px;
+}
+
+.ventas-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.ventas-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.equipos-circulos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2em;
+    justify-content: flex-start;
+    margin-top: 1.2em;
+}
+
+.equipo-circulo-svg-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.equipo-nombre-svg {
+    margin-top: 0.3em;
+    font-size: 0.95em;
+    color: var(--text-primary);
+    text-align: center;
+    word-break: break-word;
+    max-width: 80px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ventas-grid {
+        grid-template-columns: 1fr;
+        padding: 0.75rem;
+    }
+    .ventas-row {
+        padding: 0.5rem;
+    }
+    .equipos-circulos {
+        gap: 0.7em;
+    }
+    .equipo-circulo-svg-container {
+        min-width: 55px;
+    }
+    .equipo-nombre-svg {
+        font-size: 0.85em;
+        max-width: 60px;
+    }
+}
