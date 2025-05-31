@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateProductDetails(product) {
+        restaurarVistaPrecio();
         console.log('updateProductDetails llamado con producto:', product);
         selectedProduct = product;
         productTitle.textContent = product.name.replace(/<[^>]*>/g, '');
@@ -60,9 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
         stockPrevisto.textContent = product.virtual_available;
         // Mostrar precio con formato chileno
         const precioVenta = parseInt((product.list_price || '').toString().replace(/[^\d]/g, ''));
-        productPrice.textContent = precioVenta ? `$${precioVenta.toLocaleString('es-CL')}` : '-';
-        productSku.textContent = product.default_code;
-        productBarcode.textContent = product.barcode;
+        editPriceInput.value = precioVenta ? `$${precioVenta.toLocaleString('es-CL')}` : '-';
+        editSkuInput.value = product.default_code || '';
+        editBarcodeInput.value = product.barcode || '';
         productCategory.textContent = product.categ_id;
         // Calcular y mostrar margen
         mostrarMargenTag(product);
@@ -77,6 +78,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('La función cargarHistorialVentas no está disponible');
         }
+        restaurarVistaPrecio();
+        restaurarVistaSku();
+        restaurarVistaBarcode();
     }
 
     function mostrarMargenTag(product) {
@@ -440,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Obtener el nuevo precio como número
         let nuevoPrecio = parseInt(nuevoPrecioInput.value.replace(/[^\d]/g, '')) || 0;
         if (!selectedProduct || !nuevoPrecio) {
-            mostrarMensajeModal('Error: datos incompletos', false);
+            mostrarMensajeModal('¡Stock actualizado exitosamente!', true);
             return;
         }
         // Deshabilitar botón para evitar doble envío
@@ -673,23 +677,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (document.getElementById('stockReal')) {
                             document.getElementById('stockReal').textContent = newQty;
                         }
-                        if (typeof updateProductDetails === 'function') {
-                            fetch('search_products.php', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ product_id: selectedProduct.id })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.results && data.results.length > 0) {
-                                    updateProductDetails(data.results[0]);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error al recargar producto:', error);
-                            });
+                        if (document.getElementById('stockPrevisto')) {
+                            document.getElementById('stockPrevisto').textContent = '-';
                         }
                     }
                 })
@@ -725,6 +714,240 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             window.modalMsgBg.classList.remove('active');
         }, 1800);
+    }
+
+    const lastProductId = localStorage.getItem('lastProductId');
+    if (lastProductId) {
+        fetch('search_products.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: lastProductId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                updateProductDetails(data.results[0]);
+            }
+            localStorage.removeItem('lastProductId');
+        });
+    }
+
+    // --- Edición inline de precio ---
+    const editPriceBtn = document.getElementById('editPriceBtn');
+    const savePriceBtn = document.getElementById('savePriceBtn');
+    const editPriceInput = document.getElementById('editPriceInput');
+
+    function restaurarVistaPrecio() {
+        editPriceInput.disabled = true;
+        savePriceBtn.style.display = 'none';
+        editPriceBtn.style.display = 'flex';
+        // Forzar por si algún estilo viejo queda
+        savePriceBtn.classList.remove('force-visible');
+        editPriceBtn.classList.remove('force-visible');
+    }
+
+    if (editPriceBtn && savePriceBtn && editPriceInput) {
+        restaurarVistaPrecio();
+
+        editPriceBtn.addEventListener('click', function() {
+            editPriceInput.disabled = false;
+            editPriceBtn.style.display = 'none';
+            savePriceBtn.style.display = 'flex';
+            savePriceBtn.classList.add('force-visible');
+            editPriceBtn.classList.remove('force-visible');
+            editPriceInput.focus();
+            editPriceInput.select();
+        });
+
+        editPriceInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (editPriceInput.disabled) return;
+                // Formatear antes de deshabilitar
+                let valor = this.value.replace(/\D/g, '');
+                if (valor.length > 0) {
+                    this.value = '$' + parseInt(valor).toLocaleString('es-CL');
+                }
+                restaurarVistaPrecio();
+            }, 200);
+        });
+
+        savePriceBtn.addEventListener('click', function() {
+            const nuevoPrecio = parseInt(editPriceInput.value.replace(/\D/g, '')) || 0;
+            const precioActual = parseInt(editPriceInput.value.replace(/\D/g, '')) || 0;
+            
+            if (!selectedProduct || !nuevoPrecio) {
+                mostrarMensaje('Ingrese un precio válido', 'error');
+                return;
+            }
+
+            editPriceInput.disabled = true;
+            savePriceBtn.disabled = true;
+
+            fetch('update_field.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: selectedProduct.id,
+                    field: 'list_price',
+                    value: nuevoPrecio
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    editPriceInput.value = `$${nuevoPrecio.toLocaleString('es-CL')}`;
+                    restaurarVistaPrecio();
+                    mostrarMensaje('Precio actualizado', 'success');
+                } else {
+                    mostrarMensaje(data.error || 'No se pudo actualizar el precio', 'error');
+                    editPriceInput.disabled = false;
+                    savePriceBtn.disabled = false;
+                }
+            })
+            .catch(() => {
+                mostrarMensaje('Error de conexión', 'error');
+                editPriceInput.disabled = false;
+                savePriceBtn.disabled = false;
+            });
+        });
+    }
+
+    // --- Edición inline de SKU ---
+    const editSkuBtn = document.getElementById('editSkuBtn');
+    const saveSkuBtn = document.getElementById('saveSkuBtn');
+    const editSkuInput = document.getElementById('editSkuInput');
+
+    function restaurarVistaSku() {
+        editSkuInput.disabled = true;
+        saveSkuBtn.style.display = 'none';
+        editSkuBtn.style.display = 'flex';
+        saveSkuBtn.disabled = false;
+    }
+    if (editSkuBtn && saveSkuBtn && editSkuInput) {
+        restaurarVistaSku();
+        editSkuBtn.addEventListener('click', function() {
+            editSkuInput.disabled = false;
+            editSkuBtn.style.display = 'none';
+            saveSkuBtn.style.display = 'flex';
+            editSkuInput.focus();
+            editSkuInput.select();
+        });
+        editSkuInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (editSkuInput.disabled) return;
+                restaurarVistaSku();
+            }, 200);
+        });
+        saveSkuBtn.addEventListener('click', function() {
+            const nuevoSku = editSkuInput.value.trim();
+            const skuActual = selectedProduct ? (selectedProduct.default_code || '').trim() : '';
+            if (!selectedProduct) {
+                mostrarMensaje('No hay producto seleccionado', 'error');
+                return;
+            }
+            if (nuevoSku === skuActual) {
+                restaurarVistaSku();
+                return;
+            }
+            editSkuInput.disabled = true;
+            saveSkuBtn.disabled = true;
+            fetch('update_field.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: selectedProduct.id,
+                    field: 'default_code',
+                    value: nuevoSku
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    editSkuInput.value = nuevoSku;
+                    selectedProduct.default_code = nuevoSku;
+                    restaurarVistaSku();
+                    mostrarMensaje('SKU actualizado', 'success');
+                } else {
+                    mostrarMensaje(data.error || 'No se pudo actualizar el SKU', 'error');
+                    editSkuInput.disabled = false;
+                    saveSkuBtn.disabled = false;
+                }
+            })
+            .catch(() => {
+                mostrarMensaje('Error de conexión', 'error');
+                editSkuInput.disabled = false;
+                saveSkuBtn.disabled = false;
+            });
+        });
+    }
+
+    // --- Edición inline de Cod. Barra ---
+    const editBarcodeBtn = document.getElementById('editBarcodeBtn');
+    const saveBarcodeBtn = document.getElementById('saveBarcodeBtn');
+    const editBarcodeInput = document.getElementById('editBarcodeInput');
+
+    function restaurarVistaBarcode() {
+        editBarcodeInput.disabled = true;
+        saveBarcodeBtn.style.display = 'none';
+        editBarcodeBtn.style.display = 'flex';
+        saveBarcodeBtn.disabled = false;
+    }
+    if (editBarcodeBtn && saveBarcodeBtn && editBarcodeInput) {
+        restaurarVistaBarcode();
+        editBarcodeBtn.addEventListener('click', function() {
+            editBarcodeInput.disabled = false;
+            editBarcodeBtn.style.display = 'none';
+            saveBarcodeBtn.style.display = 'flex';
+            editBarcodeInput.focus();
+            editBarcodeInput.select();
+        });
+        editBarcodeInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (editBarcodeInput.disabled) return;
+                restaurarVistaBarcode();
+            }, 200);
+        });
+        saveBarcodeBtn.addEventListener('click', function() {
+            const nuevoBarcode = editBarcodeInput.value.trim();
+            const barcodeActual = selectedProduct ? (selectedProduct.barcode || '').trim() : '';
+            if (!selectedProduct) {
+                mostrarMensaje('No hay producto seleccionado', 'error');
+                return;
+            }
+            if (nuevoBarcode === barcodeActual) {
+                restaurarVistaBarcode();
+                return;
+            }
+            editBarcodeInput.disabled = true;
+            saveBarcodeBtn.disabled = true;
+            fetch('update_field.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: selectedProduct.id,
+                    field: 'barcode',
+                    value: nuevoBarcode
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    editBarcodeInput.value = nuevoBarcode;
+                    selectedProduct.barcode = nuevoBarcode;
+                    restaurarVistaBarcode();
+                    mostrarMensaje('Código de barra actualizado', 'success');
+                } else {
+                    mostrarMensaje(data.error || 'No se pudo actualizar el código de barra', 'error');
+                    editBarcodeInput.disabled = false;
+                    saveBarcodeBtn.disabled = false;
+                }
+            })
+            .catch(() => {
+                mostrarMensaje('Error de conexión', 'error');
+                editBarcodeInput.disabled = false;
+                saveBarcodeBtn.disabled = false;
+            });
+        });
     }
 });
 

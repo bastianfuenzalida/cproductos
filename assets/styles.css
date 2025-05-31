@@ -173,6 +173,10 @@ body {
     gap: 0.5rem 1rem;
     margin-bottom: 1rem;
 }
+.info-grid > div {
+    overflow: hidden;
+    min-width: 0;
+}
 .info-grid div {
     display: flex;
     flex-direction: column;
@@ -899,4 +903,137 @@ body {
     padding: 0.7rem 1rem;
 }
 
-/* Aquí va todo el CSS que estaba en el <style> de index.php */
+/* LIMPIEZA Y FIX FINAL BOTONES PRECIO */
+
+/* Contenedor flex para input y botones */
+.precio-flex {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0.5em;
+}
+
+#editPriceInput, #editSkuInput, #editBarcodeInput {
+    width: 100%;
+    max-width: 120px;
+    font-size: 1.1rem;
+    padding: 0.3em 0.7em 0.1em 0.7em;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    background: var(--card);
+    color: var(--secondary);
+    border-radius: 0;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-bottom 0.2s, background 0.2s;
+    font-weight: bold;
+    margin: 0;
+    flex: 1 1 0;
+    height: 2.2em;
+    line-height: 2.2em;
+    display: flex;
+    align-items: center;
+}
+#editPriceInput:disabled, #editSkuInput:disabled, #editBarcodeInput:disabled {
+    background: var(--card);
+    color: var(--secondary);
+    opacity: 1;
+    cursor: default;
+    border-bottom: 2px solid transparent;
+}
+#editPriceInput:focus, #editSkuInput:focus, #editBarcodeInput:focus {
+    border-bottom: 2.5px solid #ffd54f;
+    background: var(--card);
+}
+.edit-icon-btn, .save-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    color: var(--accent);
+    margin-left: 0.2em;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    height: 2.2em;
+    justify-content: center;
+}
+
+.force-visible {
+    display: flex !important;
+}
+
+.precio-flex-overlay {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.precio-flex-overlay input {
+    width: 100%;
+    padding-right: 60px; /* espacio para los botones */
+    box-sizing: border-box;
+}
+
+.edit-icon-btn,
+.save-icon-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+
+/* Posicionamiento individual */
+#editPriceBtn {
+    right: 32px;
+}
+
+#savePriceBtn {
+    right: 4px;
+}
+
+.info-precio-row .info-value {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: block;
+}
+.info-precio-row {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    height: auto !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+#margenTag {
+    z-index: 9999 !important;
+    position: absolute !important;
+    top: -10px !important;
+    right: -12px !important;
+    font-size: 1rem !important;
+    pointer-events: none;
+    background: #43a047;
+    color: #fff;
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.info-grid > div:nth-child(3) {
+    min-height: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+.info-precio-row,
+.info-precio-row .info-value {
+    overflow: visible !important;
+}

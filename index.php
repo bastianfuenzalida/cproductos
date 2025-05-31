@@ -33,18 +33,43 @@
                 <span class="info-label">Previsto</span>
                 <span class="info-value" id="stockPrevisto">-</span>
             </div>
-            <div>
-                <span class="info-label">Precio</span>
-                <span class="info-value" id="productPrice">-</span>
-                <span id="margenTag" style="display:none;position:absolute;top:-6px;right:12px;z-index:2;font-size:0.85rem;box-shadow:0 2px 8px rgba(0,0,0,0.15);"></span>
+            <div class="info-precio-row">
+            <span class="info-label">Precio de Venta</span>
+                <div class="info-value">
+                    <div class="precio-flex">
+                        <input type="text" id="editPriceInput" class="info-value" disabled>
+                        <button id="editPriceBtn" class="edit-icon-btn" title="Editar precio">
+                            <span class="edit-icon">✏️</span>
+                        </button>
+                        <button id="savePriceBtn" class="save-icon-btn" title="Guardar precio">
+                            <span class="save-icon">💾</span>
+                        </button>
+                    </div>
+                </div>
             </div>
             <div>
                 <span class="info-label">SKU</span>
-                <span class="info-value" id="productSku">-</span>
+                <div class="info-precio-row">
+                    <div class="info-value">
+                        <div class="precio-flex">
+                            <input type="text" id="editSkuInput" class="info-value" disabled>
+                            <button id="editSkuBtn" class="edit-icon-btn" title="Editar SKU"><span class="edit-icon">✏️</span></button>
+                            <button id="saveSkuBtn" class="save-icon-btn" title="Guardar SKU"><span class="save-icon">💾</span></button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div>
                 <span class="info-label">Cod. Barra</span>
-                <span class="info-value" id="productBarcode">-</span>
+                <div class="info-precio-row">
+                    <div class="info-value">
+                        <div class="precio-flex">
+                            <input type="text" id="editBarcodeInput" class="info-value" disabled>
+                            <button id="editBarcodeBtn" class="edit-icon-btn" title="Editar Cod. Barra"><span class="edit-icon">✏️</span></button>
+                            <button id="saveBarcodeBtn" class="save-icon-btn" title="Guardar Cod. Barra"><span class="save-icon">💾</span></button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div>
                 <span class="info-label">Categoría</span>
