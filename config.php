@@ -108,4 +108,18 @@ try {
     error_log("Error al inicializar Odoo: " . $e->getMessage());
     $uid = null;
 }
+
+// Conexión a MySQL para uso general
+function conectarDB() {
+    $host = '192.168.0.65';
+    $user = 'cproductos';
+    $pass = 'cproductos123';
+    $db = 'MASCOLIMP-PRD'; // Cambia si tu base de datos tiene otro nombre
+    $conn = new mysqli($host, $user, $pass, $db);
+    if ($conn->connect_error) {
+        die('Error de conexión a MySQL: ' . $conn->connect_error);
+    }
+    $conn->set_charset('utf8');
+    return $conn;
+}
 ?>

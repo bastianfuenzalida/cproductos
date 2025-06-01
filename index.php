@@ -14,6 +14,8 @@ if (!isset($_SESSION['odoo_uid'])) {
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="assets/styles.css">
     <link rel="stylesheet" href="assets/css/ventas.css">
+    <link rel="stylesheet" href="assets/etiquetas.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -271,6 +273,48 @@ if (!isset($_SESSION['odoo_uid'])) {
             <button type="submit" style="background:#333;color:#fff;border:none;border-radius:6px;padding:0.4em 1.1em;font-size:0.95em;cursor:pointer;">Cerrar sesión</button>
         </form>
     </div>
+    <!-- Modal Imprimir Fleje -->
+    <div class="modal-etiquetas-bg" id="modalEtiquetasBg">
+      <div class="modal-etiquetas-content">
+        <button id="modalEtiquetasClose" class="modal-etiquetas-close">&times;</button>
+        <h2 style="color:var(--accent);margin-bottom:1rem;">Imprimir Fleje</h2>
+        <div style="margin-bottom:1rem;">
+          <label for="etiquetasCantidadInput">Cantidad de etiquetas:</label>
+          <input type="number" id="etiquetasCantidadInput" class="modal-etiquetas-input" min="1" value="1" style="width:100px;margin-left:0.7em;">
+        </div>
+        <button id="agregarEtiquetaBtn" class="modal-etiquetas-agregar">Agregar a impresión</button>
+        <div style="margin:1.2em 0 0.5em 0;font-weight:bold;color:var(--accent);display:flex;align-items:center;justify-content:flex-end;">
+          <span style="flex:1;">Acumulado para impresión</span>
+          <span id="borrarTodosEtiquetas" class="borrar-todos-etiquetas">Borrar todos</span>
+        </div>
+        <div id="spinnerEtiquetas" class="spinner-etiquetas" style="display:none;">
+          <div class="spinner"></div>
+        </div>
+        <div id="tablaEtiquetasContainer">
+          <table class="tabla-etiquetas">
+            <thead>
+              <tr><th>Producto</th><th>Cantidad</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="etiquetasTbody">
+              <!-- Las filas se agregan dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+        <button id="imprimirEtiquetasBtn" class="modal-etiquetas-imprimir" style="margin-top:1.2em;align-self:center;font-size:1.1em;font-weight:bold;display:flex;align-items:center;gap:0.5em;">
+          <span>🖨️</span> Imprimir etiquetas
+        </button>
+      </div>
+    </div>
+    <!-- Modal Código de Barras Etiqueta -->
+    <div class="modal-barcode-bg" id="modalBarcodeBg">
+      <div class="modal-barcode-content">
+        <button id="modalBarcodeClose" class="modal-barcode-close">&times;</button>
+        <h2 style="color:var(--accent);margin-bottom:1rem;">SKU</h2>
+        <div id="barcodeSku" style="font-size:1.2em;font-weight:bold;margin-bottom:0.7em;color:var(--accent);"></div>
+        <h2 style="color:var(--accent);margin-bottom:1rem;">Código de Barras</h2>
+        <div id="barcodeValue" style="font-size:1.5em;font-weight:bold;color:#fff;"></div>
+      </div>
+    </div>
 
     <script src="assets/main.js"></script>
     <script src="assets/ventas.js"></script>
@@ -280,5 +324,6 @@ if (!isset($_SESSION['odoo_uid'])) {
         const odooName = '<?php echo htmlspecialchars($_SESSION['odoo_name'] ?? ''); ?>';
     </script>
     <script src="assets/compras.js"></script>
+    <script src="assets/etiquetas.js"></script>
 </body>
 </html>

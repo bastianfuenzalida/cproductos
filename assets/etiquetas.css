@@ -1,0 +1,283 @@
+/* Modal de impresión de etiquetas */
+.modal-etiquetas-bg {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-etiquetas-bg.active {
+    display: flex;
+}
+.modal-etiquetas-content {
+    background: #232323;
+    border-radius: 14px;
+    padding: 2rem 2.2rem 1.5rem 2.2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 320px;
+    max-width: 95vw;
+    border: 2px solid var(--accent);
+    color: var(--secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+.modal-etiquetas-close {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    font-size: 2rem;
+    color: #fff;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s;
+}
+.modal-etiquetas-close:hover {
+    background: rgba(0,0,0,0.7);
+}
+.modal-etiquetas-input {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--secondary);
+    padding: 0.5rem 0.7rem;
+    font-size: 1rem;
+}
+.modal-etiquetas-agregar {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.7rem 2.2rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    align-self: center;
+    transition: background 0.2s;
+}
+.modal-etiquetas-agregar:hover {
+    background: #ffd54f;
+}
+.modal-etiquetas-imprimir {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.7rem 2.2rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    align-self: center;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+.modal-etiquetas-imprimir:hover {
+    background: #ffd54f;
+}
+.btn-eliminar-etiqueta {
+    background: none;
+    border: none;
+    color: #ff4444;
+    cursor: pointer;
+    font-size: 1.3em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-eliminar-etiqueta:hover {
+    background: rgba(255,68,68,0.1);
+}
+.tabla-etiquetas {
+    width: 100%;
+    min-width: 220px;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.98rem;
+}
+.tabla-etiquetas th, .tabla-etiquetas td {
+    padding: 0.5em 1em;
+    text-align: left;
+}
+.tabla-etiquetas th {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: bold;
+    border-radius: 6px 6px 0 0;
+}
+.tabla-etiquetas tr:nth-child(even) {
+    background: #292929;
+}
+.tabla-etiquetas tr:nth-child(odd) {
+    background: #232323;
+}
+.tabla-etiquetas td {
+    color: var(--secondary);
+}
+.tabla-etiquetas td:last-child {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+}
+@media (max-width: 600px) {
+    .modal-etiquetas-content {
+        min-width: 0;
+        width: 98vw;
+        padding: 1.5rem 1rem;
+    }
+    .modal-etiquetas-agregar {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+    }
+    .tabla-etiquetas {
+        font-size: 0.92rem;
+        min-width: 120px;
+    }
+}
+.spinner-etiquetas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 1em 0;
+}
+.spinner {
+    border: 6px solid #eee;
+    border-top: 6px solid var(--accent);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+}
+#tablaEtiquetasContainer {
+    max-height: 260px;
+    overflow-y: auto;
+    width: 100%;
+}
+.input-cantidad-etiqueta {
+    background: transparent !important;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    color: var(--secondary);
+    border-radius: 0;
+    outline: none;
+    font-weight: bold;
+    font-size: 1rem;
+    box-sizing: border-box;
+    height: 2.2em;
+    line-height: 2.2em;
+    text-align: right;
+    margin: 0;
+    padding: 0 4px;
+    min-width: 60px;
+    max-width: 80px;
+    transition: border-bottom 0.2s, background 0.2s;
+}
+.input-cantidad-etiqueta:focus {
+    border-bottom: 2.5px solid #ffd54f;
+    background: transparent;
+}
+.btn-barcode-etiqueta {
+    background: none;
+    border: none;
+    color: #ffa600;
+    cursor: pointer;
+    font-size: 1.3em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.2em;
+}
+.btn-barcode-etiqueta:hover {
+    background: rgba(255,166,0,0.08);
+    color: #ffd54f;
+}
+.modal-barcode-bg {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-barcode-bg.active {
+    display: flex;
+}
+.modal-barcode-content {
+    background: #232323;
+    border-radius: 14px;
+    padding: 2rem 2.2rem 1.5rem 2.2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 320px;
+    max-width: 95vw;
+    border: 2px solid var(--accent);
+    color: var(--secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+.modal-barcode-close {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    font-size: 2rem;
+    color: #fff;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s;
+}
+.modal-barcode-close:hover {
+    background: rgba(0,0,0,0.7);
+}
+.borrar-todos-etiquetas {
+    color: #ff4444;
+    cursor: pointer;
+    font-weight: normal;
+    font-size: 0.98em;
+    user-select: none;
+    text-decoration: underline dotted;
+    transition: color 0.2s;
+    margin-left: 80px;
+}
+.borrar-todos-etiquetas:hover {
+    color: #ff2222;
+    text-decoration: underline;
+} 
