@@ -3,6 +3,7 @@
 function mostrarBloqueCompras(purchase_history) {
     const comprasGrid = document.querySelector('.compras-grid');
     const proveedorFull = document.querySelector('.proveedor-full');
+    if (!comprasGrid || !proveedorFull) return;
     if (!purchase_history) {
         comprasGrid.innerHTML = '<div>Sin historial de compras</div><div></div>';
         proveedorFull.textContent = '';

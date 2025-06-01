@@ -46,10 +46,14 @@
 
 .equipos-circulos {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 1.2em;
     justify-content: flex-start;
     margin-top: 1.2em;
+    overflow-x: auto;
+    padding-bottom: 0.5em;
+    -webkit-overflow-scrolling: touch;
 }
 
 .equipo-circulo-svg-container {
@@ -57,6 +61,7 @@
     flex-direction: column;
     align-items: center;
     min-width: 70px;
+    flex-shrink: 0;
 }
 
 .equipo-nombre-svg {

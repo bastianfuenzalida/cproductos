@@ -12,68 +12,11 @@ $db = 'MASCOLIMP-PRD';
 $username = 'contacto@mascolimp.cl';
 $password = 'Asd18280896';
 
-
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $query = isset($input['query']) ? trim($input['query']) : '';
     $product_id = isset($input['product_id']) ? intval($input['product_id']) : 0;
 
-    if ($product_id > 0) {
-        // Buscar por ID de producto
-        // ... tu lógica para buscar el producto por ID ...
-        // Ejemplo:
-        $ch = curl_init($odooUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $data = [
-            "jsonrpc" => "2.0",
-            "method" => "call",
-            "params" => [
-                "service" => "object",
-                "method" => "execute",
-                "args" => [
-                    $db,
-                    $uid,
-                    $password,
-                    "product.product",
-                    "search_read",
-                    [[['id', '=', $product_id]]],
-                    ["id", "name", "default_code", "qty_available", "virtual_available", "list_price", "image_medium", "barcode", "categ_id", "last_purchase_price"]
-                ]
-            ],
-            "id" => 1
-        ];
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        $response = curl_exec($ch);
-        curl_close($ch);
-        $result = json_decode($response, true);
-        if (isset($result['error'])) {
-            throw new Exception('Error al buscar producto por ID: ' . json_encode($result['error']));
-        }
-        echo json_encode([
-            'results' => $result['result']
-        ]);
-        exit;
-    }
-
-    if ($query === '') {
-        throw new Exception('Término de búsqueda vacío');
-    }
-   
-    
-
-    // ... lógica existente para búsqueda por query ...
-
-} catch (Exception $e) {
-    echo json_encode(['error' => $e->getMessage()]);
-}
-
-
-try {
     // Autenticación en Odoo
     $auth_data = [
         "jsonrpc" => "2.0",
@@ -113,6 +56,58 @@ try {
 
     $uid = $auth_result['result'];
 
+    // Ahora que tenemos la autenticación, procedemos con la búsqueda
+    if ($product_id > 0) {
+        // Búsqueda por ID usando search_read
+        $search_data = [
+            "jsonrpc" => "2.0",
+            "method" => "call",
+            "params" => [
+                "service" => "object",
+                "method" => "execute",
+                "args" => [
+                    $db,
+                    $uid,
+                    $password,
+                    "product.product",
+                    "search_read",
+                    [['id', '=', $product_id]],
+                    ["id", "name", "default_code", "qty_available", "virtual_available", "list_price", "image_medium", "barcode", "categ_id", "last_purchase_price"]
+                ]
+            ],
+            "id" => 2
+        ];
+        
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($search_data));
+        $response = curl_exec($ch);
+        
+        if ($response === false) {
+            throw new Exception('Error CURL en búsqueda por ID: ' . curl_error($ch));
+        }
+        
+        $result = json_decode($response, true);
+        
+        if (isset($result['error'])) {
+            throw new Exception('Error al buscar producto por ID: ' . json_encode($result['error']));
+        }
+        
+        echo json_encode(['results' => $result['result']]);
+        exit;
+    }
+
+    if ($query === '') {
+        throw new Exception('Término de búsqueda vacío');
+    }
+   
+    
+
+    // ... lógica existente para búsqueda por query ...
+
+} catch (Exception $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+}
+
+try {
     // Preparar el dominio de búsqueda
     $is_barcode = preg_match('/^\d{7,}$/', $query); // 7 o más dígitos, típico de código de barras
     if ($is_barcode) {

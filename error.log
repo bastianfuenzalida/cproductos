@@ -8,3 +8,13 @@
 [29-May-2025 16:35:38 America/Santiago] Error en adjust_stock.php: Error al crear ajuste: {"code":200,"message":"Odoo Server Error","data":{"name":"werkzeug.exceptions.BadRequest","debug":"Traceback (most recent call last):\n  File \"\/opt\/odoo\/server\/odoo\/http.py\", line 656, in _handle_exception\n    return super(JsonRequest, self)._handle_exception(exception)\n  File \"\/opt\/odoo\/server\/odoo\/http.py\", line 314, in _handle_exception\n    raise pycompat.reraise(type(exception), exception, sys.exc_info()[2])\n  File \"\/opt\/odoo\/server\/odoo\/tools\/pycompat.py\", line 87, in reraise\n    raise value\n  File \"\/opt\/odoo\/server\/odoo\/http.py\", line 698, in dispatch\n    result = self._call_function(**self.params)\n  File \"\/opt\/odoo\/server\/odoo\/http.py\", line 322, in _call_function\n    raise werkzeug.exceptions.BadRequest(msg % params)\nwerkzeug.exceptions.BadRequest: 400: Bad Request\n","message":"400: Bad Request","arguments":[],"exception_type":"internal_error"}}
 [29-May-2025 16:37:44 America/Santiago] PHP Warning:  session_cache_limiter(): Session cache limiter cannot be changed when a session is active in C:\xampp\htdocs\cproductos\config.php on line 29
 [29-May-2025 16:37:44 America/Santiago] PHP Warning:  session_cache_expire(): Session cache expiration cannot be changed when a session is active in C:\xampp\htdocs\cproductos\config.php on line 30
+[31-May-2025 14:30:46 America/Santiago] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\cproductos\config.php on line 28
+[31-May-2025 14:30:46 America/Santiago] PHP Warning:  Undefined variable $odoo_url in C:\xampp\htdocs\cproductos\odoo_login.php on line 44
+[31-May-2025 14:30:46 America/Santiago] PHP Warning:  Undefined variable $odoo_db in C:\xampp\htdocs\cproductos\odoo_login.php on line 44
+[31-May-2025 14:30:46 America/Santiago] PHP Warning:  file_get_contents(/web/session/authenticate): Failed to open stream: No such file or directory in C:\xampp\htdocs\cproductos\odoo_login.php on line 35
+[01-Jun-2025 00:07:50 America/Santiago] PHP Warning:  Undefined variable $ch in C:\xampp\htdocs\cproductos\search_products.php on line 42
+[01-Jun-2025 00:07:50 America/Santiago] PHP Fatal error:  Uncaught TypeError: curl_setopt(): Argument #1 ($handle) must be of type CurlHandle, null given in C:\xampp\htdocs\cproductos\search_products.php:42
+Stack trace:
+#0 C:\xampp\htdocs\cproductos\search_products.php(42): curl_setopt(NULL, 10015, '{"jsonrpc":"2.0...')
+#1 {main}
+  thrown in C:\xampp\htdocs\cproductos\search_products.php on line 42

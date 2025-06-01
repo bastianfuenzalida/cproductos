@@ -11,12 +11,10 @@ const COLORES_EQUIPOS = {
 
 function mostrarBloqueVentas(sales_history) {
     const ventasGrid = document.querySelector('.ventas-grid');
-    if (!ventasGrid) {
-        return;
-    }
+    if (!ventasGrid) return;
 
     if (!sales_history || !Array.isArray(sales_history) || sales_history.length === 0) {
-        ventasGrid.innerHTML = '<div class="ventas-col"><div class="ventas-row"><span class="ventas-label">Venta x Sem:</span><span class="ventas-value">Sin datos</span> <span class="ventas-label" style="margin-left:1.5em;">Mensual:</span><span class="ventas-value">Sin datos</span></div></div>';
+        ventasGrid.innerHTML = '<div class="ventas-col"><div class="ventas-row"><span class="ventas-label">Semanal:</span><span class="ventas-value">Sin datos</span> <span class="ventas-label" style="margin-left:1.5em;">Mensual:</span><span class="ventas-value">Sin datos</span></div></div>';
         return;
     }
 
@@ -30,7 +28,7 @@ function mostrarBloqueVentas(sales_history) {
     ventasGrid.innerHTML = `
         <div class="ventas-col">
             <div class="ventas-row">
-                <span class="ventas-label">Venta x Sem:</span>
+                <span class="ventas-label">Semanal:</span>
                 <span class="ventas-value">${ventaSemanal}</span>
                 <span class="ventas-label" style="margin-left:1.5em;">Mensual:</span>
                 <span class="ventas-value">${ventaMensual}</span>
@@ -54,7 +52,7 @@ function crearCirculoEquipo(equipo) {
             <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="#bbb" stroke-width="${stroke}" fill="none" />
             <circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="${equipo.color}" stroke-width="${stroke}" fill="none"
                 stroke-dasharray="${dash} ${circ - dash}" stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})" />
-            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle" font-size="1em" fill="#222" font-weight="bold">${pct}%</text>
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="0.9em" fill="#fff" font-weight="bold">${pct}%</text>
         </svg>
         <div class="equipo-nombre-svg">${equipo.nombre}</div>
     </div>

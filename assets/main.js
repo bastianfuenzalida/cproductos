@@ -42,6 +42,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function cargarUltimoMovimientoStock(productId) {
+        const div = document.getElementById('ultimoMovimientoStock');
+        if (!div) return;
+        div.innerHTML = '<span style="color:#ffb300;font-size:0.93em;">Últ. Ajuste Stock: </span> <span style="color:#fff;font-size:0.93em;">Buscando último movimiento...</span>';
+        fetch(`ultimo_movimiento_stock.php?product_id=${productId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && !data.empty) {
+                    const fechaObj = new Date(data.date);
+                    // Ajustar la hora restando 4 horas
+                    fechaObj.setHours(fechaObj.getHours() - 4);
+                    const fecha = fechaObj.toLocaleString('es-CL', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                    let texto = `Fecha: ${fecha} | Stock Ajustado: ${data.qty_done ?? data.qty}`;
+                    if (typeof data.stock_final !== 'undefined') {
+                        texto += ` | Stock Final: ${data.stock_final}`;
+                    }
+                    texto += ` | Ref: ${data.reference}`;
+                    div.innerHTML = `<span style="color:#ffb300;font-size:0.93em;">Últ. Ajuste Stock: </span><span style="color:#fff;font-size:0.93em; class="marquee-scroll">${texto}</span>`;
+                } else {
+                    div.innerHTML = `<span style="color:#ffb300;font-size:0.93em;">Últ. Ajuste Stock: </span> <span style="color:#fff;font-size:0.93em;">Sin movimientos de ajuste de inventario</span>`;
+                }
+            })
+            .catch(() => {
+                div.innerHTML = `<span style="color:#ffb300;font-size:0.93em;">Últ. Ajuste Stock: </span> <span style="color:#fff;font-size:0.93em;">Error al consultar movimiento de stock</span>`;
+            });
+    }
+
     function updateProductDetails(product) {
         restaurarVistaPrecio();
         console.log('updateProductDetails llamado con producto:', product);
@@ -60,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
         stockReal.textContent = product.qty_available;
         stockPrevisto.textContent = product.virtual_available;
         // Mostrar precio con formato chileno
-        const precioVenta = parseInt((product.list_price || '').toString().replace(/[^\d]/g, ''));
+        const precioVenta = parseInt((product.list_price || '').toString().replace(/[^\d]/g, '')) || 0;
         editPriceInput.value = precioVenta ? `$${precioVenta.toLocaleString('es-CL')}` : '-';
         editSkuInput.value = product.default_code || '';
         editBarcodeInput.value = product.barcode || '';
@@ -81,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
         restaurarVistaPrecio();
         restaurarVistaSku();
         restaurarVistaBarcode();
+        cargarUltimoMovimientoStock(product.id);
     }
 
     function mostrarMargenTag(product) {
@@ -278,18 +313,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Agregar event listeners a los resultados
                 document.querySelectorAll('.search-result-item').forEach(item => {
                     item.addEventListener('click', function() {
+                        // Cerrar resultados primero
+                        searchResults.classList.remove('active');
+                        searchInput.blur(); // Evitar que el input recupere el foco y reabra la lista
                         const productId = this.dataset.productId;
                         const product = data.results.find(p => p.id === parseInt(productId));
                         if (product) {
-                            // Remover selección anterior
                             document.querySelectorAll('.search-result-item').forEach(i => 
                                 i.classList.remove('selected'));
-                            // Marcar como seleccionado
                             this.classList.add('selected');
-                            // Actualizar detalles
+                            // Logs para depuración
+                            console.log('Producto seleccionado:', product);
+                            console.log('purchase_history:', product.purchase_history);
+                            console.log('ID:', product.id);
                             updateProductDetails(product);
-                            // Cerrar resultados
-                            searchResults.classList.remove('active');
                         }
                     });
                 });
@@ -401,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('click', function() {
                 if (!selectedProduct) return;
                 // Mostrar precio actual con formato chileno
-                const precioVenta = parseInt(selectedProduct.list_price.replace(/[^\d]/g, ''));
+                const precioVenta = parseInt((selectedProduct.list_price || 0).toString()) || 0;
                 precioActualModal.textContent = `$${precioVenta.toLocaleString('es-CL')}`;
                 
                 // Obtener y mostrar último precio de compra + IVA
@@ -579,119 +616,263 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Modal de ajuste de stock
-    const modalStockBg = document.getElementById('modalStockBg');
-    const modalStockClose = document.getElementById('modalStockClose');
-    const stockCancelarBtn = document.getElementById('stockCancelarBtn');
-    const stockGuardarBtn = document.getElementById('stockGuardarBtn');
-    const stockMotivoInput = document.getElementById('stockMotivoInput');
-    const stockCantidadInput = document.getElementById('stockCantidadInput');
+    // Modal de ajuste de inventario físico
+    const modalInvBg = document.getElementById('modalInvBg');
+    const modalInvClose = document.getElementById('modalInvClose');
+    const invUbicacionSelect = document.getElementById('invUbicacionSelect');
+    const invUbicacionInput = document.getElementById('invUbicacionInput');
+    const invCantidadInput = document.getElementById('invCantidadInput');
+    const invAgregarBtn = document.getElementById('invAgregarBtn');
+    const invCancelarBtn = document.getElementById('invCancelarBtn');
+    const invGuardarBtn = document.getElementById('invGuardarBtn');
+    const invConteosBody = document.getElementById('invConteosBody');
+    const invTotalConteo = document.getElementById('invTotalConteo');
 
-    // Botón de abrir modal (Ajuste Stock)
+    // Array para almacenar los conteos
+    let conteosFisicos = [];
+
+    // Función para cargar conteos desde la base de datos
+    function cargarConteosDesdeBD(productId) {
+        conteosFisicos = [];
+        invConteosBody.innerHTML = '';
+        invTotalConteo.textContent = '0';
+        fetch(`consultar_conteos.php?product_id=${productId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.conteos)) {
+                    conteosFisicos = data.conteos.map(c => ({
+                        id: c.id, // Aseguramos que el id esté presente
+                        ubicacion: c.ubicacion,
+                        cantidad: parseInt(c.cantidad),
+                        fecha: c.fecha
+                    }));
+                    actualizarTablaConteos();
+                }
+            });
+    }
+
+    // Botón de abrir modal (Ajuste Inv)
     document.querySelectorAll('.actions button').forEach(btn => {
-        if (btn.textContent.includes('Ajuste Stock')) {
-            console.log('Botón Ajuste Stock encontrado');
+        if (btn.textContent.trim() === 'Ajuste Inv') {
             btn.addEventListener('click', function() {
-                console.log('Click en botón Ajuste Stock');
                 if (!selectedProduct) {
-                    console.log('No hay producto seleccionado');
+                    mostrarMensaje('No hay producto seleccionado', 'error');
                     return;
                 }
-                // Actualizar el motivo con el SKU del producto
-                stockMotivoInput.value = `INV: SKU ${selectedProduct.default_code}`;
-                // Poner la cantidad actual como valor inicial
-                stockCantidadInput.value = selectedProduct.qty_available;
+                // Resetear el select a SALA y ocultar el input
+                invUbicacionSelect.value = 'SALA';
+                invUbicacionInput.style.display = 'none';
+                invUbicacionInput.value = '';
+                invCantidadInput.value = '';
+                // Cargar conteos activos desde la base de datos
+                cargarConteosDesdeBD(selectedProduct.id);
                 // Mostrar el modal
-                modalStockBg.classList.add('active');
+                modalInvBg.classList.add('active');
             });
         }
     });
 
     // Cerrar modal
-    if (modalStockClose) {
-        modalStockClose.addEventListener('click', function() {
-            modalStockBg.classList.remove('active');
-        });
-    }
-    if (modalStockBg) {
-        modalStockBg.addEventListener('click', function(e) {
-            if (e.target === modalStockBg) {
-                modalStockBg.classList.remove('active');
-            }
-        });
-    }
-    if (stockCancelarBtn) {
-        stockCancelarBtn.addEventListener('click', function() {
-            modalStockBg.classList.remove('active');
-        });
-    }
+    modalInvClose.addEventListener('click', function() {
+        modalInvBg.classList.remove('active');
+    });
+    modalInvBg.addEventListener('click', function(e) {
+        if (e.target === modalInvBg) {
+            modalInvBg.classList.remove('active');
+        }
+    });
+    invCancelarBtn.addEventListener('click', function() {
+        modalInvBg.classList.remove('active');
+    });
 
-    // Guardar ajuste
-    if (stockGuardarBtn) {
-        stockGuardarBtn.addEventListener('click', function() {
-            if (!selectedProduct) return;
-
-            const newQty = parseInt(stockCantidadInput.value);
-            const reason = stockMotivoInput.value.trim();
-
-            if (isNaN(newQty) || newQty < 0) {
-                mostrarMensaje('La cantidad debe ser un número válido', 'error');
+    // Agregar conteo
+    invAgregarBtn.addEventListener('click', function() {
+        let ubicacion = '';
+        const ubicacionSeleccionada = invUbicacionSelect.value;
+        if (ubicacionSeleccionada === 'OTRO') {
+            ubicacion = invUbicacionInput.value.trim();
+            if (!ubicacion) {
+                mostrarMensaje('Debe ingresar una ubicación', 'error');
                 return;
             }
-            if (!reason) {
-                mostrarMensaje('Debe ingresar un motivo para el ajuste', 'error');
+        } else if (ubicacionSeleccionada) {
+            ubicacion = ubicacionSeleccionada;
+        } else {
+            mostrarMensaje('Debe seleccionar una ubicación', 'error');
+            return;
+        }
+
+        const cantidad = parseInt(invCantidadInput.value) || 0;
+        if (cantidad < 0) {
+            mostrarMensaje('La cantidad debe ser un número válido', 'error');
+            return;
+        }
+
+        // Enviar a la base de datos
+        invAgregarBtn.disabled = true;
+        fetch('guardar_conteo.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: selectedProduct.id,
+                usuario: odooUser,
+                ubicacion: ubicacion,
+                cantidad: cantidad
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            invAgregarBtn.disabled = false;
+            if (!data.success) {
+                mostrarMensaje(data.error || 'No se pudo guardar el conteo', 'error');
                 return;
             }
+            // Limpiar solo los campos de texto, mantener la selección
+            invUbicacionSelect.value = ubicacionSeleccionada;
+            if (ubicacionSeleccionada === 'OTRO') {
+                invUbicacionInput.style.display = 'block';
+            } else {
+                invUbicacionInput.style.display = 'none';
+            }
+            invUbicacionInput.value = '';
+            invCantidadInput.value = '';
+            invCantidadInput.focus();
+            // Recargar la tabla desde la base de datos
+            cargarConteosDesdeBD(selectedProduct.id);
+        })
+        .catch(() => {
+            invAgregarBtn.disabled = false;
+            mostrarMensaje('Error de conexión', 'error');
+        });
+    });
 
-            // Mostrar mensaje de confirmación
-            modalConfirmBg.classList.add('active');
-            document.querySelector('#modalConfirmBg p').textContent = 
-                `¿Está seguro de ajustar el stock a ${newQty} unidades?`;
-
-            // Limpiar cualquier evento anterior para evitar conflictos
-            confirmYesBtn.onclick = null;
-            confirmNoBtn.onclick = null;
-
-            // Manejar confirmación SOLO para ajuste de stock
-            confirmYesBtn.onclick = function() {
-                modalConfirmBg.classList.remove('active');
-                // Enviar ajuste a Odoo
-                const formData = new FormData();
-                formData.append('product_id', selectedProduct.id);
-                formData.append('new_qty', newQty);
-                formData.append('reason', reason);
-
-                fetch('adjust_stock.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        mostrarMensaje(data.error, 'error');
-                        return;
-                    }
-                    if (data.success) {
-                        mostrarMensaje(data.message, 'success');
-                        modalStockBg.classList.remove('active');
-                        if (document.getElementById('stockReal')) {
-                            document.getElementById('stockReal').textContent = newQty;
-                        }
-                        if (document.getElementById('stockPrevisto')) {
-                            document.getElementById('stockPrevisto').textContent = '-';
-                        }
-                    }
-                })
-                .catch(error => {
-                    mostrarMensaje(error.message || 'Error al ajustar el stock', 'error');
-                });
-            };
-
-            confirmNoBtn.onclick = function() {
-                modalConfirmBg.classList.remove('active');
-            };
+    // Función para eliminar conteo
+    function eliminarConteoBD(id) {
+        fetch('eliminar_conteo.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                mostrarMensaje(data.error || 'No se pudo eliminar el conteo', 'error');
+                return;
+            }
+            cargarConteosDesdeBD(selectedProduct.id);
+        })
+        .catch(() => {
+            mostrarMensaje('Error de conexión', 'error');
         });
     }
+
+    // Modificar actualizarTablaConteos para usar el id de la bd
+    function actualizarTablaConteos() {
+        invConteosBody.innerHTML = conteosFisicos.map((conteo, index) => {
+            const fecha = new Date(conteo.fecha).toLocaleString('es-CL', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return `
+                <tr>
+                    <td>
+                        <div>${conteo.ubicacion}</div>
+                        <div style="font-size:0.8em;color:#888;">${fecha}</div>
+                    </td>
+                    <td style="text-align:right">${conteo.cantidad}</td>
+                    <td style="text-align:center">
+                        <button class="btn-eliminar-conteo" data-id="${conteo.id || ''}" title="Eliminar conteo">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Actualizar total
+        const total = conteosFisicos.reduce((sum, conteo) => sum + conteo.cantidad, 0);
+        invTotalConteo.textContent = total;
+
+        // Agregar event listeners a los botones de eliminar
+        document.querySelectorAll('.btn-eliminar-conteo').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                if (id) {
+                    if (confirm('¿Está seguro de eliminar este conteo?')) {
+                        eliminarConteoBD(id);
+                    }
+                }
+            });
+        });
+    }
+
+    // Guardar ajuste de inventario
+    invGuardarBtn.addEventListener('click', function() {
+        if (conteosFisicos.length === 0) {
+            mostrarMensaje('Debe agregar al menos un conteo', 'error');
+            return;
+        }
+
+        const total = conteosFisicos.reduce((sum, conteo) => sum + conteo.cantidad, 0);
+        // Usar el primer nombre del usuario para el motivo
+        const primerNombre = odooName ? odooName.split(' ')[0] : odooUser;
+        const motivo = `INV FÍSICO [${primerNombre}]: ${conteosFisicos.map(c => `${c.ubicacion}(${c.cantidad})`).join(', ')}`;
+
+        // Mostrar confirmación
+        modalConfirmBg.classList.add('active');
+        document.querySelector('#modalConfirmBg p').textContent =
+            `¿Está seguro de actualizar el stock a ${total} unidades?\nMotivo: ${motivo}`;
+
+        // Limpiar eventos anteriores
+        confirmYesBtn.onclick = null;
+        confirmNoBtn.onclick = null;
+
+        // Manejar confirmación
+        confirmYesBtn.onclick = function() {
+            modalConfirmBg.classList.remove('active');
+
+            // Solo ajustar stock y marcar como validados
+            const formData = new FormData();
+            formData.append('product_id', selectedProduct.id);
+            formData.append('new_qty', total);
+            formData.append('reason', motivo);
+
+            fetch('adjust_stock.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    mostrarMensaje(data.error, 'error');
+                    return;
+                }
+                if (data.success) {
+                    // Marcar conteos como validados en la base de datos
+                    fetch('limpiar_conteos.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_id: selectedProduct.id })
+                    });
+                    mostrarMensaje(data.message, 'success');
+                    modalInvBg.classList.remove('active');
+                    if (document.getElementById('stockReal')) {
+                        document.getElementById('stockReal').textContent = total;
+                    }
+                    if (document.getElementById('stockPrevisto')) {
+                        document.getElementById('stockPrevisto').textContent = '-';
+                    }
+                    // Recargar la ficha del producto seleccionado
+                    recargarProductoSeleccionado();
+                }
+            })
+            .catch(error => {
+                mostrarMensaje(error.message || 'Error al ajustar el stock', 'error');
+            });
+        };
+
+        confirmNoBtn.onclick = function() {
+            modalConfirmBg.classList.remove('active');
+        };
+    });
 
     function mostrarMensaje(msg, tipo) {
         // tipo: 'success' o 'error'
@@ -947,6 +1128,156 @@ document.addEventListener('DOMContentLoaded', function() {
                 editBarcodeInput.disabled = false;
                 saveBarcodeBtn.disabled = false;
             });
+        });
+    }
+
+    // Permitir agregar conteo con Enter
+    invUbicacionSelect.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (this.value === 'OTRO') {
+                invUbicacionInput.focus();
+            } else {
+                invCantidadInput.focus();
+            }
+        }
+    });
+
+    invUbicacionInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            invCantidadInput.focus();
+        }
+    });
+
+    invCantidadInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            invAgregarBtn.click();
+        }
+    });
+
+    // Subir el modal cuando aparece el teclado en móviles
+    function isMobile() {
+        return window.innerWidth <= 600;
+    }
+    [invUbicacionInput, invCantidadInput].forEach(input => {
+        input.addEventListener('focus', function() {
+            if (isMobile()) {
+                modalInvBg.querySelector('.modal-inv-content').classList.add('keyboard-up');
+            }
+        });
+        input.addEventListener('blur', function() {
+            if (isMobile()) {
+                setTimeout(() => {
+                    modalInvBg.querySelector('.modal-inv-content').classList.remove('keyboard-up');
+                }, 200); // Espera a que el teclado se oculte
+            }
+        });
+    });
+
+    // Agregar event listener para el botón de ajuste de stock (Ajuste Stock)
+    document.querySelectorAll('.actions button').forEach(btn => {
+        if (btn.textContent.trim() === 'Ajuste Stock') {
+            btn.addEventListener('click', function() {
+                if (!selectedProduct) {
+                    mostrarMensaje('No hay producto seleccionado', 'error');
+                    return;
+                }
+                console.log("Abriendo modal de ajuste de stock para producto:", selectedProduct);
+                const modalStockBg = document.getElementById('modalStockBg');
+                if (modalStockBg) {
+                    // Cargar el valor del stock actual en el input de cantidad del modal
+                    const stockCantidadInput = document.getElementById('stockCantidadInput');
+                    if (stockCantidadInput && stockReal) {
+                        stockCantidadInput.value = stockReal.textContent;
+                    }
+                    modalStockBg.classList.add('active');
+                } else {
+                    console.error("No se encontró el modal de ajuste de stock (modalStockBg)");
+                }
+            });
+        }
+    });
+
+    // Agregar event listeners para los botones del modal de ajuste de stock (Ajuste Stock)
+    const modalStockBg = document.getElementById('modalStockBg');
+    const modalStockClose = document.getElementById('modalStockClose');
+    const stockCancelarBtn = document.getElementById('stockCancelarBtn');
+    const stockGuardarBtn = document.getElementById('stockGuardarBtn');
+    const stockMotivoInput = document.getElementById('stockMotivoInput');
+    const stockCantidadInput = document.getElementById('stockCantidadInput');
+
+    if (modalStockClose) {
+        modalStockClose.addEventListener('click', function() {
+            modalStockBg.classList.remove('active');
+        });
+    } else {
+        console.error("No se encontró el botón de cerrar (modalStockClose)");
+    }
+
+    if (stockCancelarBtn) {
+        stockCancelarBtn.addEventListener('click', function() {
+            modalStockBg.classList.remove('active');
+        });
+    } else {
+        console.error("No se encontró el botón de cancelar (stockCancelarBtn)");
+    }
+
+    if (stockGuardarBtn) {
+        stockGuardarBtn.addEventListener('click', function() {
+            const motivo = stockMotivoInput ? stockMotivoInput.value.trim() : "";
+            const cantidad = stockCantidadInput ? (parseInt(stockCantidadInput.value) || 0) : 0;
+            console.log("Guardando ajuste de stock: motivo=", motivo, "cantidad=", cantidad);
+            if (selectedProduct && cantidad >= 0) {
+                const formData = new FormData();
+                formData.append("product_id", selectedProduct.id);
+                formData.append("new_qty", cantidad);
+                formData.append("reason", motivo);
+                fetch("adjust_stock.php", { method: "POST", body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            mostrarMensaje("¡Ajuste de stock guardado con éxito!", "success");
+                            modalStockBg.classList.remove("active");
+                            // Opcional: actualizar el stock en la interfaz (por ejemplo, stockReal)
+                            if (stockReal) stockReal.textContent = cantidad;
+                            // Recargar la ficha del producto seleccionado
+                            recargarProductoSeleccionado();
+                        } else {
+                            mostrarMensaje(data.error || "Error al guardar el ajuste de stock", "error");
+                        }
+                    })
+                    .catch (err => {
+                        console.error("Error al guardar ajuste de stock:", err);
+                        mostrarMensaje("Error de conexión", "error");
+                    });
+            } else {
+                mostrarMensaje("Debe ingresar una cantidad válida (no negativa) y un motivo.", "error");
+            }
+        });
+    } else {
+        console.error("No se encontró el botón de guardar (stockGuardarBtn)");
+    }
+
+    // Función para recargar la ficha del producto seleccionado
+    function recargarProductoSeleccionado() {
+        if (!selectedProduct || !selectedProduct.id) return;
+        fetch('search_products.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: selectedProduct.id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                updateProductDetails(data.results[0]);
+            } else {
+                mostrarMensaje('No se pudo recargar el producto', 'error');
+            }
+        })
+        .catch(() => {
+            mostrarMensaje('Error de conexión al recargar producto', 'error');
         });
     }
 });

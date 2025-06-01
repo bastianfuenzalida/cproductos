@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (!isset($_SESSION['odoo_uid'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,6 +13,7 @@
     <title>Saco Master Dog 18kg</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/css/ventas.css">
 </head>
 <body>
     <div class="container">
@@ -44,6 +52,7 @@
                         <button id="savePriceBtn" class="save-icon-btn" title="Guardar precio">
                             <span class="save-icon">💾</span>
                         </button>
+                        <span id="margenTag" style="display:none;position:absolute;top:-6px;right:-12px;z-index:2;font-size:0.75rem;"></span>
                     </div>
                 </div>
             </div>
@@ -82,9 +91,8 @@
             <button>Ajuste Inv</button>
             <button>Ajuste Stock</button>
         </div>
-        <div class="status-stock-bar">
-            <span class="status-label">Status Stock</span>
-            <span class="status-value">Bajo</span>
+        <div class="ultimo-movimiento-stock" id="ultimoMovimientoStock" style="margin-bottom:1rem;color:#ffb300;font-weight:bold;font-size:1.05rem;">
+            <!-- Aquí se mostrará el último movimiento de stock -->
         </div>
         <div class="section compras-section">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -92,35 +100,20 @@
                 <button id="verTodosComprasBtn" class="ver-todos-btn">Ver todos</button>
             </div>
             <div class="compras-grid">
-                <div>
-                    Últ. Fecha: 10/06/2024<br>
-                    Costo: $24.890<br>
-                    Nº Pedido: PO06852
-                </div>
-                <div>
-                    Cant: 10<br>
-                    Nº Total Pedidos: 85
-                </div>
+
             </div>
             <div class="proveedor-full">
-                Proveedor: SOCIEDAD COMERCIAL ALLENDES HERMANOS S.A.
+                
             </div>
         </div>
         <div class="section analisis-section">
             <div class="analisis-title">Análisis de Ventas</div>
             <div class="ventas-grid"></div>
             <div class="analisis-grid">
-                <div>
-                    Venta x Sem: 15<br>
-                    Últ. Venta: 01/05/25<br>
-                    Team: Punto Venta
-                </div>
-                <div>
-                    Venta Mes: 50<br>
-                    PPV: $29.900
-                </div>
+
             </div>
         </div>
+        <!-- 
         <div class="section resumen-section">
             <div class="resumen-title">Resumen mes actual</div>
             <div class="resumen-grid">
@@ -145,7 +138,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>-->
     <!-- Modal para imagen grande -->
     <div class="modal-img-bg" id="modalImgBg">
         <div class="modal-img-content">
@@ -215,6 +208,53 @@
             </div>
         </div>
     </div>
+    <!-- Modal de ajuste de inventario físico -->
+    <div class="modal-inv-bg" id="modalInvBg">
+        <div class="modal-inv-content">
+            <button id="modalInvClose" class="modal-inv-close">&times;</button>
+            <h2 style="color:var(--accent);margin-bottom:1rem;">Conteo Físico de Inventario</h2>
+            <div style="margin-bottom:1rem;">
+                <div class="inv-input-row">
+                    <select id="invUbicacionSelect" class="modal-inv-input" style="flex:1;">
+                        <option value="">Seleccione ubicación</option>
+                        <option value="SALA" selected>SALA</option>
+                        <option value="BODEGA">BODEGA</option>
+                        <option value="2 PISO">2 PISO</option>
+                        <option value="3 PISO">3 PISO</option>
+                        <option value="OTRO">OTRO</option>
+                    </select>
+                    <input type="text" id="invUbicacionInput" class="modal-inv-input" placeholder="Otra ubicación" style="flex:1;display:none;">
+                    <input type="number" id="invCantidadInput" class="modal-inv-input" placeholder="Cantidad" style="width:120px;" min="0" step="1">
+                    <button id="invAgregarBtn" class="modal-inv-btn modal-inv-agregar">Agregar</button>
+                </div>
+            </div>
+            <div class="inv-conteos-container" style="margin-bottom:1rem;max-height:200px;overflow-y:auto;">
+                <table class="inv-conteos-table" style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;padding:0.5rem;border-bottom:1px solid #333;">Ubicación</th>
+                            <th style="text-align:right;padding:0.5rem;border-bottom:1px solid #333;">Cantidad</th>
+                            <th style="text-align:center;padding:0.5rem;border-bottom:1px solid #333;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invConteosBody">
+                        <!-- Los conteos se agregarán aquí dinámicamente -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td style="text-align:left;padding:0.5rem;border-top:1px solid #333;font-weight:bold;">Total</td>
+                            <td style="text-align:right;padding:0.5rem;border-top:1px solid #333;font-weight:bold;" id="invTotalConteo">0</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div style="display:flex;gap:1rem;justify-content:center;">
+                <button id="invCancelarBtn" class="modal-inv-btn modal-inv-cancelar">Cancelar</button>
+                <button id="invGuardarBtn" class="modal-inv-btn modal-inv-guardar">Actualizar Stock</button>
+            </div>
+        </div>
+    </div>
     <!-- Mensaje de éxito/error -->
     <div id="modalMsgBg" class="modal-msg-bg"><div id="modalMsgContent" class="modal-msg-content"></div></div>
     <!-- Modal historial de compras -->
@@ -225,9 +265,20 @@
             <div id="tablaComprasContainer"></div>
         </div>
     </div>
+    <!-- Botón de cerrar sesión -->
+    <div style="width:100%;display:flex;justify-content:flex-end;margin-top:2.5rem;">
+        <form action="logout.php" method="post" style="margin:0;">
+            <button type="submit" style="background:#333;color:#fff;border:none;border-radius:6px;padding:0.4em 1.1em;font-size:0.95em;cursor:pointer;">Cerrar sesión</button>
+        </form>
+    </div>
 
     <script src="assets/main.js"></script>
     <script src="assets/ventas.js"></script>
+    <script>
+        // Obtener el usuario y nombre de Odoo desde PHP
+        const odooUser = '<?php echo htmlspecialchars($_SESSION['odoo_user'] ?? ''); ?>';
+        const odooName = '<?php echo htmlspecialchars($_SESSION['odoo_name'] ?? ''); ?>';
+    </script>
     <script src="assets/compras.js"></script>
 </body>
 </html>
