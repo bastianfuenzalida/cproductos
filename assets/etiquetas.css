@@ -280,4 +280,216 @@
 .borrar-todos-etiquetas:hover {
     color: #ff2222;
     text-decoration: underline;
+}
+.btn-config-modal {
+    background: none;
+    color: var(--accent);
+    border: none;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0.3em 1em;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    margin-left: 0.2em;
+}
+.btn-config-modal:hover {
+    background: #ffd54f22;
+    color: #ffd54f;
+}
+.modal-config-impresora-bg, .modal-zpl-bg {
+    display: none;
+    position: fixed;
+    z-index: 10002;
+    left: 0; top: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-config-impresora-bg.active, .modal-zpl-bg.active {
+    display: flex;
+}
+.modal-config-impresora-content, .modal-zpl-content {
+    background: #232323;
+    border-radius: 14px;
+    padding: 2rem 2.2rem 1.5rem 2.2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    min-width: 320px;
+    max-width: 95vw;
+    border: 2px solid var(--accent);
+    color: var(--secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+.modal-config-impresora-close, .modal-zpl-close {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    font-size: 2rem;
+    color: #fff;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s;
+}
+.modal-config-impresora-close:hover, .modal-zpl-close:hover {
+    background: rgba(0,0,0,0.7);
+}
+.modal-config-input, .modal-zpl-input {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--secondary);
+    padding: 0.5rem 0.7rem;
+    font-size: 1rem;
+}
+.modal-config-guardar, .modal-zpl-guardar {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.7rem 2.2rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    align-self: center;
+    transition: background 0.2s;
+}
+.modal-config-guardar:hover, .modal-zpl-guardar:hover {
+    background: #ffd54f;
+}
+.modal-zpl-textarea {
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--secondary);
+    padding: 0.5rem 0.7rem;
+    font-size: 1rem;
+    width: 100%;
+    min-width: 180px;
+    max-width: 100%;
+    resize: vertical;
+}
+.tabla-zpl {
+    width: 100%;
+    min-width: 220px;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.98rem;
+}
+.tabla-zpl th, .tabla-zpl td {
+    padding: 0.5em 1em;
+    text-align: left;
+}
+.tabla-zpl th {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: bold;
+    border-radius: 6px 6px 0 0;
+}
+.tabla-zpl tr:nth-child(even) {
+    background: #292929;
+}
+.tabla-zpl tr:nth-child(odd) {
+    background: #232323;
+}
+.tabla-zpl td {
+    color: var(--secondary);
+}
+
+/* --- ZPL MODAL: textarea y tabla al 100% del ancho del modal --- */
+.modal-zpl-content textarea,
+.modal-zpl-content .modal-zpl-textarea {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  font-family: monospace;
+  font-size: 1.05em;
+  resize: vertical;
+}
+
+.modal-zpl-content #tablaZplContainer,
+.modal-zpl-content .tabla-zpl {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.modal-zpl-content .tabla-zpl th,
+.modal-zpl-content .tabla-zpl td {
+  padding: 0.5em 1em;
+  text-align: left;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .modal-zpl-content textarea,
+  .modal-zpl-content .modal-zpl-textarea,
+  .modal-zpl-content #tablaZplContainer,
+  .modal-zpl-content .tabla-zpl {
+    width: 76vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+}
+
+/* Estilo moderno para el select de plantilla ZPL */
+.modal-zpl-select {
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid var(--accent);
+  color: var(--accent);
+  font-size: 1.08em;
+  font-weight: bold;
+  padding: 0.35em 0.2em 0.25em 0.2em;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.2s, color 0.2s;
+  min-width: 160px;
+  box-shadow: none;
+  appearance: none;
+}
+.modal-zpl-select:focus {
+  border-bottom: 2.5px solid #ffd54f;
+  color: #ffd54f;
+}
+.modal-zpl-select option {
+  background: #232323;
+  color: var(--accent);
+  font-weight: normal;
+}
+
+/* Botón engranaje configuración modal etiquetas */
+.btn-config-gear {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 1.08em;
+  cursor: pointer;
+  padding: 0.08em 2.18em;
+  border-radius: 50%;
+  transition: background 0.18s, color 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+}
+.btn-config-gear:hover {
+  background: #ffd54f22;
+  color: #ffd54f;
 } 

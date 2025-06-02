@@ -63,7 +63,7 @@ try {
     }
 
     // GET: listar acumulado agrupado por SKU solo activos
-    $result = $conn->query("SELECT sku, nombre_producto, codigo_barras, SUM(cantidad) as cantidad FROM etiquetas_impresion WHERE estado='activo' GROUP BY sku, nombre_producto, codigo_barras ORDER BY MAX(fecha) DESC, MAX(id) DESC");
+    $result = $conn->query("SELECT sku, nombre_producto, codigo_barras, precio, SUM(cantidad) as cantidad FROM etiquetas_impresion WHERE estado='activo' GROUP BY sku, nombre_producto, codigo_barras, precio ORDER BY MAX(fecha) DESC, MAX(id) DESC");
     $rows = [];
     while ($row = $result->fetch_assoc()) {
         $rows[] = $row;

@@ -18,3 +18,5 @@ Stack trace:
 #0 C:\xampp\htdocs\cproductos\search_products.php(42): curl_setopt(NULL, 10015, '{"jsonrpc":"2.0...')
 #1 {main}
   thrown in C:\xampp\htdocs\cproductos\search_products.php on line 42
+[01-Jun-2025 23:18:48 America/Santiago] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\cproductos\config.php on line 28
+[01-Jun-2025 23:19:10 America/Santiago] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\xampp\htdocs\cproductos\config.php on line 28

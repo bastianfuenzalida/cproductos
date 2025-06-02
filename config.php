@@ -25,7 +25,9 @@ ini_set('error_log', 'error.log');
 date_default_timezone_set('America/Santiago');
 
 // Configuración de sesión
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Configuración de headers
 header('Content-Type: application/json; charset=utf-8');

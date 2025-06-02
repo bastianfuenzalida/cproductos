@@ -277,7 +277,16 @@ if (!isset($_SESSION['odoo_uid'])) {
     <div class="modal-etiquetas-bg" id="modalEtiquetasBg">
       <div class="modal-etiquetas-content">
         <button id="modalEtiquetasClose" class="modal-etiquetas-close">&times;</button>
-        <h2 style="color:var(--accent);margin-bottom:1rem;">Imprimir Fleje</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;width:100%;">
+          <h2 style="color:var(--accent);margin:0;">Imprimir Fleje</h2>
+          <div style="flex:1;display:flex;justify-content:flex-end;">
+            <button id="btnMostrarConfigImpresora" class="btn-config-gear"><i class="fa-solid fa-cog"></i></button>
+          </div>
+        </div>
+        <div id="configBtnsContainer" style="display:none;justify-content:flex-end;align-items:center;margin-bottom:0.5em;gap:0.7em;">
+          <button id="btnConfigImpresora" class="btn-config-modal">Configurar Impresora</button>
+          <button id="btnZplModal" class="btn-config-modal">ZPL</button>
+        </div>
         <div style="margin-bottom:1rem;">
           <label for="etiquetasCantidadInput">Cantidad de etiquetas:</label>
           <input type="number" id="etiquetasCantidadInput" class="modal-etiquetas-input" min="1" value="1" style="width:100px;margin-left:0.7em;">
@@ -300,9 +309,14 @@ if (!isset($_SESSION['odoo_uid'])) {
             </tbody>
           </table>
         </div>
-        <button id="imprimirEtiquetasBtn" class="modal-etiquetas-imprimir" style="margin-top:1.2em;align-self:center;font-size:1.1em;font-weight:bold;display:flex;align-items:center;gap:0.5em;">
-          <span>🖨️</span> Imprimir etiquetas
-        </button>
+        <!-- Selección de plantilla y botón imprimir debajo de la tabla -->
+        <div style="margin-top:1.2em;display:flex;flex-direction:column;align-items:flex-start;gap:0.5em;">
+          <span style="font-size:0.98em;color:#aaa;margin-bottom: -30px;">Seleccionar etiqueta</span>
+          <div style="display:flex;flex-direction:row;align-items:center;gap:0.7em;width:100%;">
+            <select id="selectZplPlantilla" class="modal-zpl-select" style="min-width:180px;"></select>
+            <button id="imprimirEtiquetasBtn" class="modal-etiquetas-imprimir"><i class="fa-solid fa-print"></i> Imprimir Etiquetas</button>
+          </div>
+        </div>
       </div>
     </div>
     <!-- Modal Código de Barras Etiqueta -->
@@ -313,6 +327,51 @@ if (!isset($_SESSION['odoo_uid'])) {
         <div id="barcodeSku" style="font-size:1.2em;font-weight:bold;margin-bottom:0.7em;color:var(--accent);"></div>
         <h2 style="color:var(--accent);margin-bottom:1rem;">Código de Barras</h2>
         <div id="barcodeValue" style="font-size:1.5em;font-weight:bold;color:#fff;"></div>
+      </div>
+    </div>
+
+    <!-- Modal Configurar Impresora FUERA del modal de impresión -->
+    <div class="modal-config-impresora-bg" id="modalConfigImpresoraBg">
+      <div class="modal-config-impresora-content">
+        <button id="modalConfigImpresoraClose" class="modal-config-impresora-close">&times;</button>
+        <h2 style="color:var(--accent);margin-bottom:1rem;">Configurar Impresora</h2>
+        <div style="margin-bottom:1rem;">
+          <label for="impresoraHost">IP o Host:</label>
+          <input type="text" id="impresoraHost" class="modal-config-input" style="width:220px;margin-left:0.7em;">
+        </div>
+        <div style="margin-bottom:1.5rem;">
+          <label for="impresoraNombre">Nombre Impresora:</label>
+          <input type="text" id="impresoraNombre" class="modal-config-input" style="width:220px;margin-left:0.7em;">
+        </div>
+        <button id="guardarConfigImpresoraBtn" class="modal-config-guardar">Guardar</button>
+      </div>
+    </div>
+
+    <!-- Modal ZPL FUERA del modal de impresión -->
+    <div class="modal-zpl-bg" id="modalZplBg">
+      <div class="modal-zpl-content">
+        <button id="modalZplClose" class="modal-zpl-close">&times;</button>
+        <h2 style="color:var(--accent);margin-bottom:1rem;">Gestión de Etiquetas ZPL</h2>
+        <div style="margin-bottom:1rem;">
+          <label for="zplNombre">Nombre Etiqueta:</label>
+          <input type="text" id="zplNombre" class="modal-zpl-input" style="width:220px;margin-left:0.7em;">
+        </div>
+        <div style="margin-bottom:1.5rem;">
+          <label for="zplCodigo">Código ZPL:</label><br>
+          <textarea id="zplCodigo" class="modal-zpl-textarea" rows="5" style="width:100%;max-width:420px;"></textarea>
+        </div>
+        <button id="guardarZplBtn" class="modal-zpl-guardar">Guardar</button>
+        <div style="margin:1.2em 0 0.5em 0;font-weight:bold;color:var(--accent);">Etiquetas ZPL guardadas</div>
+        <div id="tablaZplContainer">
+          <table class="tabla-zpl">
+            <thead>
+              <tr><th>Nombre</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="zplTbody">
+              <!-- Las filas se agregan dinámicamente -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
